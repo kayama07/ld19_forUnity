@@ -4,9 +4,9 @@ using System.Threading;
 using System.Collections.Generic;
 using UnityEngine;
 
-public class LidarVisualizer2 : MonoBehaviour
+public class LidarDataVisualizer2 : MonoBehaviour
 {
-    [SerializeField] private GameObject instancePrefab; // ƒvƒŒƒtƒ@ƒu‚ðƒVƒŠƒAƒ‰ƒCƒYƒtƒB[ƒ‹ƒh‚©‚çƒAƒ^ƒbƒ`
+    [SerializeField] private GameObject instancePrefab; // ãƒ—ãƒ¬ãƒ•ã‚¡ãƒ–ã‚’ã‚·ãƒªã‚¢ãƒ©ã‚¤ã‚ºãƒ•ã‚£ãƒ¼ãƒ«ãƒ‰ã‹ã‚‰ã‚¢ã‚¿ãƒƒãƒ
 
     private SerialPort serialPort;
     private List<byte> buffer = new List<byte>();
@@ -29,7 +29,7 @@ public class LidarVisualizer2 : MonoBehaviour
         }
         catch (Exception ex)
         {
-            Debug.LogError($"ƒVƒŠƒAƒ‹ƒ|[ƒg‚ÌÚ‘±’†‚ÉƒGƒ‰[‚ª”­¶‚µ‚Ü‚µ‚½: {ex.Message}");
+            Debug.LogError($"ã‚·ãƒªã‚¢ãƒ«ãƒãƒ¼ãƒˆã®æŽ¥ç¶šä¸­ã«ã‚¨ãƒ©ãƒ¼ãŒç™ºç”Ÿã—ã¾ã—ãŸ: {ex.Message}");
             isRunning = false;
         }
     }
@@ -75,7 +75,7 @@ public class LidarVisualizer2 : MonoBehaviour
             }
             catch (Exception ex)
             {
-                Debug.LogError($"ƒVƒŠƒAƒ‹ƒ|[ƒg‚©‚ç‚Ìƒf[ƒ^“Ç‚ÝŽæ‚è’†‚ÉƒGƒ‰[‚ª”­¶‚µ‚Ü‚µ‚½: {ex.Message}");
+                Debug.LogError($"ã‚·ãƒªã‚¢ãƒ«ãƒãƒ¼ãƒˆã‹ã‚‰ã®ãƒ‡ãƒ¼ã‚¿èª­ã¿å–ã‚Šä¸­ã«ã‚¨ãƒ©ãƒ¼ãŒç™ºç”Ÿã—ã¾ã—ãŸ: {ex.Message}");
                 isRunning = false;
             }
         }
@@ -149,7 +149,7 @@ public class LidarVisualizer2 : MonoBehaviour
 
     private void VisualizeLidarFrames(List<LidarFrame> frames)
     {
-        // ƒŠƒXƒg‚ª‹ó‚Ìê‡‚ÍƒXƒLƒbƒv
+        // ãƒªã‚¹ãƒˆãŒç©ºã®å ´åˆã¯ã‚¹ã‚­ãƒƒãƒ—
         if (frames == null || frames.Count == 0)
         {
             return;
@@ -162,7 +162,7 @@ public class LidarVisualizer2 : MonoBehaviour
         }
         catch (ArgumentException ex)
         {
-            Debug.LogError($"ƒtƒŒ[ƒ€‚ÌƒRƒs[’†‚ÉƒGƒ‰[‚ª”­¶‚µ‚Ü‚µ‚½: {ex.Message}");
+            Debug.LogError($"ãƒ•ãƒ¬ãƒ¼ãƒ ã®ã‚³ãƒ”ãƒ¼ä¸­ã«ã‚¨ãƒ©ãƒ¼ãŒç™ºç”Ÿã—ã¾ã—ãŸ: {ex.Message}");
             return;
         }
 
