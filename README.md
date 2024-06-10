@@ -13,7 +13,7 @@ LidarDataVisualizer2.cs　シーン上の適当なGameObjectにアタッチし�
 自動で消えます
 
 Overview
-LD-19 This is a script for using the Lidar sensor with UNITY
+ This is a script for using the Lidar sensor LD-19 with UNITY
 Since it uses serial communication, please set various serial communication settings in ProjectSettings
 
 Usage 1
