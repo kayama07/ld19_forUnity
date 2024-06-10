@@ -4,7 +4,7 @@ using System.Threading;
 using System.Collections.Generic;
 using UnityEngine;
 
-public class LidarVisualizer : MonoBehaviour
+public class LidarDataVisualizer : MonoBehaviour
 {
     private SerialPort serialPort;
     private List<byte> buffer = new List<byte>();
@@ -12,13 +12,13 @@ public class LidarVisualizer : MonoBehaviour
     private bool isRunning = true;
     private Thread dataThread;
 
-    // Unity‚Ì‰Šú‰»
+    // Unityã®åˆæœŸåŒ–
     void Start()
     {
-        // ŒÅ’è‚³‚ê‚½ƒVƒŠƒAƒ‹ƒ|[ƒg–¼
+        // å›ºå®šã•ã‚ŒãŸã‚·ãƒªã‚¢ãƒ«ãƒãƒ¼ãƒˆå
         string portName = "COM5";
 
-        // ƒVƒŠƒAƒ‹ƒ|[ƒg‚Ìİ’è
+        // ã‚·ãƒªã‚¢ãƒ«ãƒãƒ¼ãƒˆã®è¨­å®š
         serialPort = new SerialPort(portName, 230400, Parity.None, 8, StopBits.One);
         serialPort.ReadTimeout = 500;
 
@@ -30,12 +30,12 @@ public class LidarVisualizer : MonoBehaviour
         }
         catch (Exception ex)
         {
-            Debug.LogError($"ƒVƒŠƒAƒ‹ƒ|[ƒg‚ÌÚ‘±’†‚ÉƒGƒ‰[‚ª”­¶‚µ‚Ü‚µ‚½: {ex.Message}");
+            Debug.LogError($"ã‚·ãƒªã‚¢ãƒ«ãƒãƒ¼ãƒˆã®æ¥ç¶šä¸­ã«ã‚¨ãƒ©ãƒ¼ãŒç™ºç”Ÿã—ã¾ã—ãŸ: {ex.Message}");
             isRunning = false;
         }
     }
 
-    // Unity‚ÌI—¹‚ÉÀs
+    // Unityã®çµ‚äº†æ™‚ã«å®Ÿè¡Œ
     void OnDestroy()
     {
         isRunning = false;
@@ -49,7 +49,7 @@ public class LidarVisualizer : MonoBehaviour
         }
     }
 
-    // Unity‚ÌUpdate‚ÅÀs
+    // Unityã®Updateã§å®Ÿè¡Œ
     void Update()
     {
         if (allFrames.Count > 0)
@@ -78,7 +78,7 @@ public class LidarVisualizer : MonoBehaviour
             }
             catch (Exception ex)
             {
-                Debug.LogError($"ƒVƒŠƒAƒ‹ƒ|[ƒg‚©‚ç‚Ìƒf[ƒ^“Ç‚İæ‚è’†‚ÉƒGƒ‰[‚ª”­¶‚µ‚Ü‚µ‚½: {ex.Message}");
+                Debug.LogError($"ã‚·ãƒªã‚¢ãƒ«ãƒãƒ¼ãƒˆã‹ã‚‰ã®ãƒ‡ãƒ¼ã‚¿èª­ã¿å–ã‚Šä¸­ã«ã‚¨ãƒ©ãƒ¼ãŒç™ºç”Ÿã—ã¾ã—ãŸ: {ex.Message}");
                 isRunning = false;
             }
         }
@@ -88,7 +88,7 @@ public class LidarVisualizer : MonoBehaviour
     {
         while (buffer.Count >= 47)
         {
-            // ƒwƒbƒ_[‚ÌŠm”F
+            // ãƒ˜ãƒƒãƒ€ãƒ¼ã®ç¢ºèª
             if (buffer[0] != 0x54)
             {
                 int index = buffer.IndexOf(0x54);
@@ -103,7 +103,7 @@ public class LidarVisualizer : MonoBehaviour
                 }
             }
 
-            // 47ƒoƒCƒg‚Ìƒf[ƒ^‚ª‚ ‚é‚©Šm”F
+            // 47ãƒã‚¤ãƒˆã®ãƒ‡ãƒ¼ã‚¿ãŒã‚ã‚‹ã‹ç¢ºèª
             if (buffer.Count < 47)
             {
                 break;
@@ -155,31 +155,31 @@ public class LidarVisualizer : MonoBehaviour
 
     private void VisualizeLidarFrames(List<LidarFrame> frames)
     {
-        // ƒŠƒXƒg‚ÌƒRƒs[‚ğì¬
+        // ãƒªã‚¹ãƒˆã®ã‚³ãƒ”ãƒ¼ã‚’ä½œæˆ
         List<LidarFrame> framesCopy = new List<LidarFrame>(frames);
 
-        // ƒJƒƒ‰‚ÌƒXƒNƒŠ[ƒ“À•W‚ğŒvZ‚·‚é‚½‚ß‚Ì•ÏŠ·
+        // ã‚«ãƒ¡ãƒ©ã®ã‚¹ã‚¯ãƒªãƒ¼ãƒ³åº§æ¨™ã‚’è¨ˆç®—ã™ã‚‹ãŸã‚ã®å¤‰æ›
         Camera camera = Camera.main;
 
-        // ƒŠƒXƒg‚ÌƒRƒs[‚ğg‚Á‚ÄƒtƒŒ[ƒ€‚ğƒ‹[ƒv
+        // ãƒªã‚¹ãƒˆã®ã‚³ãƒ”ãƒ¼ã‚’ä½¿ã£ã¦ãƒ•ãƒ¬ãƒ¼ãƒ ã‚’ãƒ«ãƒ¼ãƒ—
         foreach (LidarFrame frame in framesCopy)
         {
-            // ƒtƒŒ[ƒ€“à‚Ìƒ|ƒCƒ“ƒg‚ğˆ—
+            // ãƒ•ãƒ¬ãƒ¼ãƒ å†…ã®ãƒã‚¤ãƒ³ãƒˆã‚’å‡¦ç†
             foreach (LidarPoint point in frame.Points)
             {
                 if (frame.EndAngle > frame.StartAngle) {
-                // ‹——£‚ÆŠp“x‚ğg—p‚µ‚ÄÀ•W‚ğŒvZ
+                // è·é›¢ã¨è§’åº¦ã‚’ä½¿ç”¨ã—ã¦åº§æ¨™ã‚’è¨ˆç®—
                 float angleInDegrees = (frame.StartAngle + (frame.EndAngle - frame.StartAngle) / 12 * frame.Points.IndexOf(point)) / 100.0f;
-                float distanceInMeters = point.Distance / 1000.0f;  // ‹——£‚Ímm‚Å—^‚¦‚ç‚ê‚Ä‚¢‚é‚½‚ßAm‚É•ÏŠ·
+                float distanceInMeters = point.Distance / 1000.0f;  // è·é›¢ã¯mmã§ä¸ãˆã‚‰ã‚Œã¦ã„ã‚‹ãŸã‚ã€mã«å¤‰æ›
 
-                // À•W‚ğŒvZ
+                // åº§æ¨™ã‚’è¨ˆç®—
                 float x = distanceInMeters * Mathf.Cos(angleInDegrees * Mathf.Deg2Rad);
                 float y = distanceInMeters * Mathf.Sin(angleInDegrees * Mathf.Deg2Rad);
 
-                // ƒXƒNƒŠ[ƒ“À•W‚É•ÏŠ·
+                // ã‚¹ã‚¯ãƒªãƒ¼ãƒ³åº§æ¨™ã«å¤‰æ›
                 Vector3 pointPosition = new Vector3(x, y, 0);
 
-                // ƒ|ƒCƒ“ƒg‚ğ•`‰æ
+                // ãƒã‚¤ãƒ³ãƒˆã‚’æç”»
                 Debug.DrawLine(Vector3.zero, pointPosition, Color.green, 0.1f);
                 }
             }
@@ -189,7 +189,7 @@ public class LidarVisualizer : MonoBehaviour
 
 
 
-    // LidarFrame‚ÆLidarPoint‚ÌƒNƒ‰ƒX’è‹`
+    // LidarFrameã¨LidarPointã®ã‚¯ãƒ©ã‚¹å®šç¾©
     private class LidarFrame
     {
         public byte Header { get; set; }
