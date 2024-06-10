@@ -3,7 +3,7 @@ LD-19　LidarセンサーをUNITYで使うためのスクリプトです
 シリアル通信を使いますのでProjectSettingsより各種シリアル通信向けの設定を行ってください
 
 利用方法1
-LidarDataVisualizer.cs　シーン上の適当なGAめObjectにアタッチしてください
+LidarDataVisualizer.cs　シーン上の適当なGameObjectにアタッチしてください
 unityシーンビューで検知位置状況を視認できます
 
 利用方法2
