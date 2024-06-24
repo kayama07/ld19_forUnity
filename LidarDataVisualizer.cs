@@ -173,7 +173,7 @@ public class LidarDataVisualizer : MonoBehaviour
                 float distanceInMeters = point.Distance / 1000.0f;  // 距離はmmで与えられているため、mに変換
 
                 // 座標を計算
-                float x = distanceInMeters * Mathf.Cos(angleInDegrees * Mathf.Deg2Rad);
+                float x = -distanceInMeters * Mathf.Cos(angleInDegrees * Mathf.Deg2Rad);
                 float y = distanceInMeters * Mathf.Sin(angleInDegrees * Mathf.Deg2Rad);
 
                 // スクリーン座標に変換
