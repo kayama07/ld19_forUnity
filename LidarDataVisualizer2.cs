@@ -179,7 +179,7 @@ public class LidarDataVisualizer2 : MonoBehaviour
                     float angleInDegrees = (frame.StartAngle + (frame.EndAngle - frame.StartAngle) / 12 * frame.Points.IndexOf(point)) / 100.0f;
                     float distanceInMeters = point.Distance / 1000.0f;
 
-                    float x = distanceInMeters * Mathf.Cos(angleInDegrees * Mathf.Deg2Rad);
+                    float x = -distanceInMeters * Mathf.Cos(angleInDegrees * Mathf.Deg2Rad);
                     float y = distanceInMeters * Mathf.Sin(angleInDegrees * Mathf.Deg2Rad);
 
                     Vector3 pointPosition = new Vector3(x, y, 0);
