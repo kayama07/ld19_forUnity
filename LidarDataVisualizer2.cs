@@ -1,3 +1,4 @@
+
 using System;
 using System.IO.Ports;
 using System.Threading;
@@ -13,10 +14,11 @@ public class LidarDataVisualizer2 : MonoBehaviour
     private List<LidarFrame> allFrames = new List<LidarFrame>();
     private bool isRunning = true;
     private Thread dataThread;
+    private object frameLock = new object();
 
     void Start()
     {
-        string portName = "COM5";
+        string portName = "COM16";
 
         serialPort = new SerialPort(portName, 230400, Parity.None, 8, StopBits.One);
         serialPort.ReadTimeout = 500;
@@ -49,13 +51,21 @@ public class LidarDataVisualizer2 : MonoBehaviour
 
     void Update()
     {
-        if (allFrames.Count > 0)
+        List<LidarFrame> framesToVisualize = null;
+
+        lock (frameLock)
         {
-            VisualizeLidarFrames(allFrames);
-            allFrames.Clear();
+            if (allFrames.Count > 0)
+            {
+                framesToVisualize = new List<LidarFrame>(allFrames);
+                allFrames.Clear();
+            }
         }
 
-       
+        if (framesToVisualize != null && framesToVisualize.Count > 0)
+        {
+            VisualizeLidarFrames(framesToVisualize);
+        }
     }
 
     private void ReadDataFromSerial()
@@ -110,7 +120,10 @@ public class LidarDataVisualizer2 : MonoBehaviour
             if (CheckLidarFrameData(frameData))
             {
                 LidarFrame frame = GetLidarFrame(frameData);
-                allFrames.Add(frame);
+                lock (frameLock)
+                {
+                    allFrames.Add(frame);
+                }
             }
         }
     }
@@ -122,13 +135,15 @@ public class LidarDataVisualizer2 : MonoBehaviour
 
     private LidarFrame GetLidarFrame(byte[] data)
     {
-        LidarFrame frame = new LidarFrame();
-        frame.Header = data[0];
-        frame.VerLen = data[1];
-        frame.Speed = BitConverter.ToUInt16(data, 2);
-        frame.StartAngle = BitConverter.ToUInt16(data, 4);
+        LidarFrame frame = new LidarFrame
+        {
+            Header = data[0],
+            VerLen = data[1],
+            Speed = BitConverter.ToUInt16(data, 2),
+            StartAngle = BitConverter.ToUInt16(data, 4),
+            Points = new List<LidarPoint>()
+        };
 
-        List<LidarPoint> points = new List<LidarPoint>();
         for (int i = 0; i < 12; i++)
         {
             int startIndex = 6 + i * 3;
@@ -137,9 +152,9 @@ public class LidarDataVisualizer2 : MonoBehaviour
                 Distance = BitConverter.ToUInt16(data, startIndex),
                 Intensity = data[startIndex + 2]
             };
-            points.Add(point);
+            frame.Points.Add(point);
         }
-        frame.Points = points;
+
         frame.EndAngle = BitConverter.ToUInt16(data, 42);
         frame.Timestamp = BitConverter.ToUInt16(data, 44);
         frame.Crc8 = data[46];
@@ -155,20 +170,7 @@ public class LidarDataVisualizer2 : MonoBehaviour
             return;
         }
 
-        List<LidarFrame> framesCopy;
-        try
-        {
-            framesCopy = new List<LidarFrame>(frames);
-        }
-        catch (ArgumentException ex)
-        {
-            Debug.LogError($"フレームのコピー中にエラーが発生しました: {ex.Message}");
-            return;
-        }
-
-        Camera camera = Camera.main;
-
-        foreach (LidarFrame frame in framesCopy)
+        foreach (LidarFrame frame in frames)
         {
             List<Vector3> pointsPositions = new List<Vector3>();
 
