@@ -4,21 +4,21 @@ using System.Threading;
 using System.Collections.Generic;
 using UnityEngine;
 
-public class LidarDataVisualizer : MonoBehaviour
+public class LidarDataVisualizer2 : MonoBehaviour
 {
+    [SerializeField] private GameObject instancePrefab; // プレファブをシリアライズフィールドからアタッチ
+
     private SerialPort serialPort;
     private List<byte> buffer = new List<byte>();
     private List<LidarFrame> allFrames = new List<LidarFrame>();
     private bool isRunning = true;
     private Thread dataThread;
+    private object frameLock = new object();
 
-    // Unityの初期化
     void Start()
     {
-        // 固定されたシリアルポート名
-        string portName = "COM5";
+        string portName = "COM16";
 
-        // シリアルポートの設定
         serialPort = new SerialPort(portName, 230400, Parity.None, 8, StopBits.One);
         serialPort.ReadTimeout = 500;
 
@@ -35,7 +35,6 @@ public class LidarDataVisualizer : MonoBehaviour
         }
     }
 
-    // Unityの終了時に実行
     void OnDestroy()
     {
         isRunning = false;
@@ -49,16 +48,23 @@ public class LidarDataVisualizer : MonoBehaviour
         }
     }
 
-    // UnityのUpdateで実行
     void Update()
     {
-        if (allFrames.Count > 0)
+        List<LidarFrame> framesToVisualize = null;
+
+        lock (frameLock)
         {
-            VisualizeLidarFrames(allFrames);
-            allFrames.Clear();
+            if (allFrames.Count > 0)
+            {
+                framesToVisualize = new List<LidarFrame>(allFrames);
+                allFrames.Clear();
+            }
         }
 
-        
+        if (framesToVisualize != null && framesToVisualize.Count > 0)
+        {
+            VisualizeLidarFrames(framesToVisualize);
+        }
     }
 
     private void ReadDataFromSerial()
@@ -88,7 +94,6 @@ public class LidarDataVisualizer : MonoBehaviour
     {
         while (buffer.Count >= 47)
         {
-            // ヘッダーの確認
             if (buffer[0] != 0x54)
             {
                 int index = buffer.IndexOf(0x54);
@@ -103,7 +108,6 @@ public class LidarDataVisualizer : MonoBehaviour
                 }
             }
 
-            // 47バイトのデータがあるか確認
             if (buffer.Count < 47)
             {
                 break;
@@ -115,7 +119,10 @@ public class LidarDataVisualizer : MonoBehaviour
             if (CheckLidarFrameData(frameData))
             {
                 LidarFrame frame = GetLidarFrame(frameData);
-                allFrames.Add(frame);
+                lock (frameLock)
+                {
+                    allFrames.Add(frame);
+                }
             }
         }
     }
@@ -127,14 +134,15 @@ public class LidarDataVisualizer : MonoBehaviour
 
     private LidarFrame GetLidarFrame(byte[] data)
     {
+        LidarFrame frame = new LidarFrame
+        {
+            Header = data[0],
+            VerLen = data[1],
+            Speed = BitConverter.ToUInt16(data, 2),
+            StartAngle = BitConverter.ToUInt16(data, 4),
+            Points = new List<LidarPoint>()
+        };
 
-        LidarFrame frame = new LidarFrame();
-        frame.Header = data[0];
-        frame.VerLen = data[1];
-        frame.Speed = BitConverter.ToUInt16(data, 2);
-        frame.StartAngle = BitConverter.ToUInt16(data, 4);
-
-        List<LidarPoint> points = new List<LidarPoint>();
         for (int i = 0; i < 12; i++)
         {
             int startIndex = 6 + i * 3;
@@ -143,9 +151,9 @@ public class LidarDataVisualizer : MonoBehaviour
                 Distance = BitConverter.ToUInt16(data, startIndex),
                 Intensity = data[startIndex + 2]
             };
-            points.Add(point);
+            frame.Points.Add(point);
         }
-        frame.Points = points;
+
         frame.EndAngle = BitConverter.ToUInt16(data, 42);
         frame.Timestamp = BitConverter.ToUInt16(data, 44);
         frame.Crc8 = data[46];
@@ -155,41 +163,39 @@ public class LidarDataVisualizer : MonoBehaviour
 
     private void VisualizeLidarFrames(List<LidarFrame> frames)
     {
-        // リストのコピーを作成
-        List<LidarFrame> framesCopy = new List<LidarFrame>(frames);
-
-        // カメラのスクリーン座標を計算するための変換
-        Camera camera = Camera.main;
-
-        // リストのコピーを使ってフレームをループ
-        foreach (LidarFrame frame in framesCopy)
+        // リストが空の場合はスキップ
+        if (frames == null || frames.Count == 0)
         {
-            // フレーム内のポイントを処理
+            return;
+        }
+
+        foreach (LidarFrame frame in frames)
+        {
+            List<Vector3> pointsPositions = new List<Vector3>();
+
             foreach (LidarPoint point in frame.Points)
             {
-                if (frame.EndAngle > frame.StartAngle) {
-                // 距離と角度を使用して座標を計算
-                float angleInDegrees = (frame.StartAngle + (frame.EndAngle - frame.StartAngle) / 12 * frame.Points.IndexOf(point)) / 100.0f;
-                float distanceInMeters = point.Distance / 1000.0f;  // 距離はmmで与えられているため、mに変換
+                if (frame.EndAngle > frame.StartAngle)
+                {
+                    float angleInDegrees = (frame.StartAngle + (frame.EndAngle - frame.StartAngle) / 12 * frame.Points.IndexOf(point)) / 100.0f;
+                    float distanceInMeters = point.Distance / 1000.0f;
 
-                // 座標を計算
-                float x = -distanceInMeters * Mathf.Cos(angleInDegrees * Mathf.Deg2Rad);
-                float y = distanceInMeters * Mathf.Sin(angleInDegrees * Mathf.Deg2Rad);
+                    float x = -distanceInMeters * Mathf.Cos(angleInDegrees * Mathf.Deg2Rad);
+                    float y = distanceInMeters * Mathf.Sin(angleInDegrees * Mathf.Deg2Rad);
 
-                // スクリーン座標に変換
-                Vector3 pointPosition = new Vector3(x, y, 0);
+                    Vector3 pointPosition = new Vector3(x, y, 0);
+                    pointsPositions.Add(pointPosition);
 
-                // ポイントを描画
-                Debug.DrawLine(Vector3.zero, pointPosition, Color.green, 0.1f);
+                    Debug.DrawLine(Vector3.zero, pointPosition, Color.green, 0.1f);
                 }
             }
+
+           
         }
     }
 
 
 
-
-    // LidarFrameとLidarPointのクラス定義
     private class LidarFrame
     {
         public byte Header { get; set; }
